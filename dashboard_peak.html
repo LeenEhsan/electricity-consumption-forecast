@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electricity Dashboard – Peak Demand</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div class="flex min-h-screen">
+    <!-- Sidebar -->
+      <aside class="w-64 bg-blue-900 text-white shadow-md">
+        <div class="p-6 text-2xl font-bold text-white">⚡ WattCast</div>
+        <nav class="mt-8 space-y-2">
+          <a
+            href="{{ url_for('dashboard_historical') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >📈 Historical Trend</a
+          >
+          <a
+            href="{{ url_for('dashboard_compare') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >📊 Compare Cities</a
+          >
+          <a
+            href="{{ url_for('dashboard_scatter') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🌡️ Temp vs Consumption</a
+          >
+          <a
+            href="{{ url_for('dashboard_peak') }}"
+            class="block px-6 py-3 bg-blue-800 rounded-l-full"
+            >🔥 Peak Demand</a
+          >
+          <a
+            href="{{ url_for('dashboard_future') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >📅 Future Forecast</a
+          >
+          <a
+            href="{{ url_for('map_forecast') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🗺️ Map Forecast</a
+          >
+        </nav>
+      </aside>
+
+
+      <!-- Main Content -->
+      <main class="flex-1 p-8">
+        {% if user %}
+  <div class="bg-white rounded-xl shadow flex items-center justify-between p-4 mb-6">
+    <div class="flex items-center gap-4">
+      <img
+        src="https://ui-avatars.com/api/?name={{ user['username'] }}&background=0D8ABC&color=fff&rounded=true"
+        alt="Avatar"
+        class="w-12 h-12 rounded-full shadow-md border"
+      />
+      <div>
+        <p class="text-lg font-semibold text-gray-800">👤 {{ user['username'] }}</p>
+        <p class="text-sm text-gray-500">{{ user['email'] }}</p>
+      </div>
+    </div>
+    <a
+      href="{{ url_for('logout') }}"
+      class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+    >
+      🔓 Logout
+    </a>
+  </div>
+  {% endif %}
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4"">
+          <h1 class="text-3xl font-semibold text-gray-800">
+            🔥 Peak Demand Days
+          </h1>
+          <a
+            href="{{ url_for('index') }}"
+            class="text-blue-600 font-medium hover:underline"
+            >← Back to Forecast</a
+          >
+          <a
+    href="{{ url_for('my_reports') }}"
+    class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded-lg shadow inline-block"
+  >
+    My Reports
+  </a>
+        </div>
+
+        <!-- Form -->
+        <form id="peak-form" class="flex gap-4 items-end mb-8">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">City</label>
+            <select
+              name="city"
+              id="peak-city"
+              required
+              class="mt-1 block w-full px-4 py-2 border rounded-lg bg-white shadow-sm"
+            >
+              {% for c in
+              ['Riyadh','Jeddah','Makkah','Madinah','Dammam','Tabuk','Abha','Buraidah','Hail','Najran','Jazan','Al
+              Khobar','Al Ahsa'] %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button
+            type="submit"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          >
+            Show Peak Days
+          </button>
+        </form>
+
+        <!-- Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-md min-h-[350px]">
+          <canvas id="peakChart"></canvas>
+        </div>
+      </main>
+    </div>
+
+    <!-- External JS -->
+    <script src="{{ url_for('static', filename='dashboard_peak.js') }}"></script>
+  </body>
+</html>
