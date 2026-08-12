@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Future Electricity Forecast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-blue-900 text-white shadow-md">
+        <div class="p-6 text-2xl font-bold text-white">⚡ WattCast</div>
+        <nav class="mt-8 space-y-2">
+          <a
+            href="{{ url_for('dashboard_historical') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >📈 Historical Trend</a
+          >
+          <a
+            href="{{ url_for('dashboard_compare') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >📊 Compare Cities</a
+          >
+          <a
+            href="{{ url_for('dashboard_scatter') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🌡️ Temp vs Consumption</a
+          >
+          <a
+            href="{{ url_for('dashboard_peak') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🔥 Peak Demand</a
+          >
+          <a
+            href="{{ url_for('dashboard_future') }}"
+            class="block px-6 py-3 bg-blue-800 rounded-l-full"
+            >📅 Future Forecast</a
+          >
+          <a
+            href="{{ url_for('map_forecast') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🗺️ Map Forecast</a
+          >
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-8 space-y-10">
+        {% if user %}
+        <div
+          class="bg-white rounded-xl shadow flex items-center justify-between p-4 mb-6"
+        >
+          <div class="flex items-center gap-4">
+            <img
+              src="https://ui-avatars.com/api/?name={{ user['username'] }}&background=0D8ABC&color=fff&rounded=true"
+              alt="Avatar"
+              class="w-12 h-12 rounded-full shadow-md border"
+            />
+            <div>
+              <p class="text-lg font-semibold text-gray-800">
+                👤 {{ user['username'] }}
+              </p>
+              <p class="text-sm text-gray-500">{{ user['email'] }}</p>
+            </div>
+          </div>
+          <a
+            href="{{ url_for('logout') }}"
+            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+          >
+            🔓 Logout
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Header -->
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4"
+        >
+          <h1 class="text-3xl font-semibold text-gray-800">
+            📅 Future Forecast
+          </h1>
+
+          <div class="mt-6 text-right">
+            <button
+              id="download-json"
+              style="display: none"
+              class="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+            >
+              ⬇ Download JSON
+            </button>
+          </div>
+
+          <a
+            href="{{ url_for('index') }}"
+            class="text-blue-600 font-medium hover:underline"
+            >← Back to Forecast</a
+          >
+          <a
+            href="{{ url_for('my_reports') }}"
+            class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded-lg shadow inline-block"
+          >
+            My Reports
+          </a>
+        </div>
+
+        <!-- Top Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+          <!-- Fuel Usage -->
+          <div
+            class="bg-red-100 p-6 rounded-lg shadow-md flex items-center justify-between"
+          >
+            <div>
+              <p class="text-gray-700 font-semibold">Fuel Usage</p>
+              <p class="text-red-700 text-2xl font-bold" id="card-fuel">–</p>
+            </div>
+            <span class="text-3xl">⛽</span>
+          </div>
+
+          <!-- Estimated Cost -->
+          <div
+            class="bg-green-100 p-6 rounded-lg shadow-md flex items-center justify-between"
+          >
+            <div>
+              <p class="text-gray-700 font-semibold">Estimated Cost</p>
+              <p class="text-green-700 text-2xl font-bold" id="card-cost">–</p>
+            </div>
+            <span class="text-3xl">💰</span>
+          </div>
+
+          <!-- Estimated Emissions -->
+          <div
+            class="bg-yellow-100 p-6 rounded-lg shadow-md flex items-center justify-between"
+          >
+            <div>
+              <p class="text-gray-700 font-semibold">Estimated Emissions</p>
+              <p class="text-yellow-700 text-2xl font-bold" id="card-emissions">
+                –
+              </p>
+            </div>
+            <span class="text-3xl">🌍</span>
+          </div>
+        </div>
+
+        <!-- Forecast Form -->
+        <form
+          id="forecast-form"
+          class="bg-white p-6 rounded-xl shadow grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          <div>
+            <label for="city" class="block font-semibold mb-1 text-gray-700"
+              >City</label
+            >
+            <select
+              id="city"
+              required
+              class="w-full border rounded p-2 bg-white"
+            >
+              <option value="">Select city</option>
+              {% for city in cities %}
+              <option value="{{ city }}">{{ city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="duration" class="block font-semibold mb-1 text-gray-700"
+              >Forecast Duration (Days)</label
+            >
+            <select
+              id="duration"
+              required
+              class="w-full border rounded p-2 bg-white"
+            >
+              <option value="">Select duration</option>
+              {% for i in range(1, 17) %}
+              <option value="{{ i }}">
+                {{ i }} day{{ 's' if i > 1 else '' }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <button
+              type="submit"
+              class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            >
+              Forecast
+            </button>
+          </div>
+        </form>
+
+        <!-- Forecast Table -->
+        <div
+          class="bg-white p-6 rounded-xl shadow hidden"
+          id="forecast-table-section"
+        >
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            📋 Forecast Summary
+          </h3>
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-gray-600 border-b">
+                <th class="pb-2">Date</th>
+                <th class="pb-2">Predicted Consumption (kWh)</th>
+              </tr>
+            </thead>
+            <tbody id="forecast-table-body" class="text-gray-700"></tbody>
+          </table>
+        </div>
+
+        <!-- Combined Chart Section -->
+        <div class="max-w-5xl mx-auto mt-10 bg-white p-6 shadow rounded-lg">
+          <div class="flex flex-col md:flex-row gap-6">
+            <!-- Donut Chart -->
+            <div class="w-full md:w-1/3">
+              <h4 class="text-center font-semibold mb-2">Forecast Breakdown</h4>
+              <canvas id="donutChart" height="200"></canvas>
+            </div>
+            <!-- Line Chart -->
+            <div class="w-full md:w-2/3">
+              <h4 class="text-center font-semibold mb-2">Forecast Schedule</h4>
+              <canvas id="forecastChart" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <!-- Add this inside <main> at the bottom of dashboard_future.html -->
+
+    <!-- JavaScript -->
+    <script src="/static/js/future_forecast.js"></script>
+  </body>
+</html>

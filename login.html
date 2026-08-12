@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login – WattCast</title>
+
+    <!-- External CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='login.css') }}"
+    />
+
+    <!-- Ionicons -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+  </head>
+
+  <body>
+    <!-- Logo -->
+    <header>
+      <a href="{{ url_for('home') }}" class="logo">WattCast</a>
+    </header>
+
+    <!-- Background Video -->
+    <video
+      class="video-background"
+      src="{{ url_for('static', filename='26070-357512237_small.mp4') }}"
+      autoplay
+      muted
+      loop
+    ></video>
+
+    <!-- Form Wrapper -->
+    <div class="wrapper">
+      <!-- Login Box -->
+      <div class="form-box login">
+        <h2>Login</h2>
+        <form id="login-form" autocomplete="off">
+          <div class="input-box">
+            <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+            <input type="email" id="login-email" autocomplete="nope" required />
+            <label>Email</label>
+          </div>
+
+          <div class="input-box">
+            <span class="icon"
+              ><ion-icon name="lock-closed-outline"></ion-icon
+            ></span>
+            <input
+              type="password"
+              id="login-password"
+              autocomplete="new-password"
+              required
+            />
+            <label>Password</label>
+          </div>
+
+          <div class="remember-forgot">
+            <label><input type="checkbox" /> Remember me</label>
+            <a href="#">Forgot Password?</a>
+          </div>
+
+          <button type="submit" class="btn">Login</button>
+          <p
+            id="login-error"
+            style="color: #f87171; text-align: center; font-size: 0.85em"
+          ></p>
+
+          <div class="login-register">
+            <p>
+              Don't have an account?
+              <a href="#" class="register-link">Register</a>
+            </p>
+          </div>
+        </form>
+      </div>
+
+      <!-- Register Box -->
+      <div class="form-box register">
+        <h2>Registration</h2>
+        <form id="register-form" autocomplete="off">
+          <div class="input-box">
+            <span class="icon"
+              ><ion-icon name="person-outline"></ion-icon
+            ></span>
+            <input type="text" id="register-username" required />
+            <label>Username</label>
+          </div>
+
+          <div class="input-box">
+            <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+            <input
+              type="email"
+              id="register-email"
+              autocomplete="nope"
+              required
+            />
+            <label>Email</label>
+          </div>
+
+          <div class="input-box">
+            <span class="icon"
+              ><ion-icon name="lock-closed-outline"></ion-icon
+            ></span>
+            <input
+              type="password"
+              id="register-password"
+              autocomplete="new-password"
+              required
+            />
+            <label>Password</label>
+          </div>
+
+          <div class="remember-forgot">
+            <label
+              ><input type="checkbox" required /> I agree to the terms &
+              conditions</label
+            >
+          </div>
+
+          <button type="submit" class="btn">Register</button>
+          <p
+            id="register-error"
+            style="color: #f87171; text-align: center; font-size: 0.85em"
+          ></p>
+          <p
+            id="login-success"
+            style="color: #4ade80; text-align: center; font-size: 0.85em"
+          ></p>
+
+          <div class="login-register">
+            <p>
+              Already have an account?
+              <a href="#" class="login-link">Login</a>
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+  </body>
+</html>

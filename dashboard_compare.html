@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electricity Dashboard – Compare Cities</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-blue-900 text-white shadow-md">
+        <div class="p-6 text-2xl font-bold text-white">⚡ WattCast</div>
+        <nav class="mt-8 space-y-2">
+          <a
+            href="{{ url_for('dashboard_historical') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >📈 Historical Trend</a
+          >
+          <a
+            href="{{ url_for('dashboard_compare') }}"
+            class="block px-6 py-3 bg-blue-800 rounded-l-full"
+            >📊 Compare Cities</a
+          >
+          <a
+            href="{{ url_for('dashboard_scatter') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🌡️ Temp vs Consumption</a
+          >
+          <a
+            href="{{ url_for('dashboard_peak') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🔥 Peak Demand</a
+          >
+          <a
+            href="{{ url_for('dashboard_future') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >📅 Future Forecast</a
+          >
+          <a
+            href="{{ url_for('map_forecast') }}"
+            class="block px-6 py-3 hover:bg-blue-800 rounded-l-full"
+            >🗺️ Map Forecast</a
+          >
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <!-- Inside your <main> block -->
+
+      <main class="flex-1 p-8">
+        {% if user %}
+        <div
+          class="bg-white rounded-xl shadow flex items-center justify-between p-4 mb-6"
+        >
+          <div class="flex items-center gap-4">
+            <img
+              src="https://ui-avatars.com/api/?name={{ user['username'] }}&background=0D8ABC&color=fff&rounded=true"
+              alt="Avatar"
+              class="w-12 h-12 rounded-full shadow-md border"
+            />
+            <div>
+              <p class="text-lg font-semibold text-gray-800">
+                👤 {{ user['username'] }}
+              </p>
+              <p class="text-sm text-gray-500">{{ user['email'] }}</p>
+            </div>
+          </div>
+          <a
+            href="{{ url_for('logout') }}"
+            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+          >
+            🔓 Logout
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Existing top controls -->
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4"
+        >
+          <h1 class="text-3xl font-semibold text-gray-800">
+            🏙️ Compare Electricity Usage
+          </h1>
+          <a
+            href="{{ url_for('index') }}"
+            class="text-blue-600 font-medium hover:underline"
+          >
+            ← Back to Forecast
+          </a>
+          <a
+            href="{{ url_for('my_reports') }}"
+            class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded-lg shadow inline-block"
+          >
+            My Reports
+          </a>
+        </div>
+
+        <!-- Form -->
+        <form id="compare-form" class="flex flex-wrap gap-4 items-end mb-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >City 1</label
+            >
+            <select
+              name="city1"
+              required
+              class="mt-1 block w-full px-4 py-2 border rounded-lg bg-white shadow-sm"
+            >
+              {% for c in
+              ['Riyadh','Jeddah','Makkah','Madinah','Dammam','Tabuk','Abha','Buraidah','Hail','Najran','Jazan','Al
+              Khobar','Al Ahsa'] %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >City 2</label
+            >
+            <select
+              name="city2"
+              required
+              class="mt-1 block w-full px-4 py-2 border rounded-lg bg-white shadow-sm"
+            >
+              {% for c in
+              ['Riyadh','Jeddah','Makkah','Madinah','Dammam','Tabuk','Abha','Buraidah','Hail','Najran','Jazan','Al
+              Khobar','Al Ahsa'] %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">From</label>
+            <input
+              type="date"
+              name="from"
+              required
+              class="mt-1 px-4 py-2 border rounded-lg bg-white shadow-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">To</label>
+            <input
+              type="date"
+              name="to"
+              required
+              class="mt-1 px-4 py-2 border rounded-lg bg-white shadow-sm"
+            />
+          </div>
+          <button
+            type="submit"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          >
+            Compare
+          </button>
+          <button
+            type="button"
+            id="download-btn"
+            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+          >
+            ⬇️ Download CSV
+          </button>
+        </form>
+
+        <!-- Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-md min-h-[350px]">
+          <canvas id="compareChart" class="w-full h-[300px]"></canvas>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+      document
+        .getElementById("compare-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault(); // ⛔ Prevent default form reload
+
+          const form = e.target;
+          const city1 = form.city1.value;
+          const city2 = form.city2.value;
+          const from = form.from.value;
+          const to = form.to.value;
+
+          try {
+            const url = `/compare_cities?city1=${city1}&city2=${city2}&from=${from}&to=${to}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.error) {
+              alert("❌ " + data.error);
+              return;
+            }
+
+            const labels = data.dates;
+            const values1 = data.city1;
+            const values2 = data.city2;
+
+            if (!labels.length || !values1.length || !values2.length) {
+              alert("⚠️ No data available for this range.");
+              return;
+            }
+
+            // Reset canvas
+            const oldCanvas = document.getElementById("compareChart");
+            const newCanvas = document.createElement("canvas");
+            newCanvas.id = "compareChart";
+            oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
+            const ctx = newCanvas.getContext("2d");
+
+            if (window.compareChart instanceof Chart) {
+              window.compareChart.destroy();
+            }
+
+            window.compareChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: `${city1} Consumption`,
+                    data: values1,
+                    borderColor: "#3B82F6",
+                    backgroundColor: "rgba(59,130,246,0.15)",
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    borderWidth: 2,
+                  },
+                  {
+                    label: `${city2} Consumption`,
+                    data: values2,
+                    borderColor: "#10B981",
+                    backgroundColor: "rgba(16,185,129,0.15)",
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    borderWidth: 2,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    labels: { color: "#333", font: { weight: "bold" } },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: (ctx) =>
+                        `${ctx.dataset.label}: ${ctx.formattedValue} kWh`,
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    ticks: { color: "#555", autoSkip: true },
+                  },
+                  y: {
+                    beginAtZero: true,
+                    suggestedMax: 2200,
+                    ticks: { color: "#555", stepSize: 200 },
+                    title: {
+                      display: true,
+                      text: "Electricity Consumption (kWh)",
+                      color: "#555",
+                      font: { weight: "bold" },
+                    },
+                  },
+                },
+              },
+            });
+
+            console.log("✅ Chart rendered");
+          } catch (err) {
+            console.error("❌ Error fetching comparison data:", err);
+            alert("Something went wrong. Please try again.");
+          }
+        });
+
+      // CSV Download Button
+      document
+        .getElementById("download-btn")
+        .addEventListener("click", async function () {
+          const city1 = document.querySelector("[name='city1']").value;
+          const city2 = document.querySelector("[name='city2']").value;
+          const from = document.querySelector("[name='from']").value;
+          const to = document.querySelector("[name='to']").value;
+          const btn = this;
+
+          const url = `/download_comparison_csv?city1=${city1}&city2=${city2}&from=${from}&to=${to}`;
+          btn.disabled = true;
+          btn.textContent = "⏳ Downloading...";
+
+          try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("CSV download failed");
+
+            const blob = await res.blob();
+            const filename = `${city1}_${city2}_comparison.csv`;
+
+            // Save locally
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+
+            // Upload to Flask
+            const formData = new FormData();
+            formData.append("file", blob, filename);
+            const uploadRes = await fetch("/upload_forecast_json", {
+              method: "POST",
+              body: formData,
+            });
+
+            const uploadData = await uploadRes.json();
+            if (!uploadData.success) {
+              console.error("⚠️ Upload failed:", uploadData.message);
+              alert("Upload failed.");
+            } else {
+              console.log("✅ CSV uploaded:", uploadData);
+            }
+          } catch (err) {
+            console.error("❌ Error downloading/uploading CSV:", err);
+            alert("An error occurred while downloading/uploading the CSV.");
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "⬇️ Download CSV";
+          }
+        });
+    </script>
+  </body>
+</html>

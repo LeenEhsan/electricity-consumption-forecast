@@ -1,0 +1,165 @@
+{% extends "base.html" %} {% block title %}Historical Trend – WattCast{%
+endblock %} {% block content %}
+<div class="flex justify-between items-center mb-6">
+  <h2 class="text-3xl font-bold flex items-center gap-2">
+    📉 Historical Trend
+  </h2>
+  <div class="flex gap-4">
+    <a href="{{ url_for('index') }}" class="text-blue-600 hover:underline"
+      >← Back to Forecast</a
+    >
+    <a
+      href="{{ url_for('my_reports') }}"
+      class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded-lg shadow inline-block"
+    >
+      My Reports
+    </a>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-gray-500">Average Consumption</p>
+    <p id="avg-consumption" class="text-2xl font-bold text-blue-700">-- kWh</p>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-gray-500">Latest Temperature</p>
+    <p id="latest-temp" class="text-2xl font-bold text-blue-700">-- °C</p>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-gray-500">Latest Humidity</p>
+    <p id="latest-humidity" class="text-2xl font-bold text-blue-700">-- %</p>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="flex items-end gap-4 mb-6 flex-wrap">
+  <div>
+    <label for="city" class="block text-sm font-medium text-gray-700"
+      >City</label
+    >
+    <select
+      id="city"
+      class="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm"
+    >
+      {% for c in
+      ['Riyadh','Jeddah','Makkah','Madinah','Dammam','Tabuk','Abha','Buraidah','Hail','Najran','Jazan','Al
+      Khobar','Al Ahsa'] %}
+      <option value="{{ c }}">{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="from" class="block text-sm font-medium text-gray-700"
+      >From</label
+    >
+    <input
+      type="date"
+      id="from"
+      class="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm"
+    />
+  </div>
+  <div>
+    <label for="to" class="block text-sm font-medium text-gray-700">To</label>
+    <input
+      type="date"
+      id="to"
+      class="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm"
+    />
+  </div>
+  <button
+    id="loadData"
+    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+  >
+    Show Trend
+  </button>
+
+  <!-- PDF Download Form -->
+  <form method="POST" action="/generate_historical_report" target="_blank">
+    <input type="hidden" name="city" id="pdf_city" />
+    <input type="hidden" name="from" id="pdf_from" />
+    <input type="hidden" name="to" id="pdf_to" />
+    <button
+      type="submit"
+      id="downloadBtn"
+      class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+    >
+      ⬇️ Download PDF
+    </button>
+  </form>
+</div>
+
+<!-- Chart -->
+<div class="bg-white rounded-xl shadow p-6">
+  <canvas id="historyChart" height="100"></canvas>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById("historyChart").getContext("2d");
+  let chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: "",
+          data: [],
+          borderColor: "blue",
+          backgroundColor: "rgba(0, 123, 255, 0.1)",
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "top" },
+        title: { display: true, text: "Electricity Consumption" },
+      },
+    },
+  });
+
+  document.getElementById("loadData").addEventListener("click", async () => {
+    const city = document.getElementById("city").value;
+    const from = document.getElementById("from").value;
+    const to = document.getElementById("to").value;
+
+    const res = await fetch(
+      `/api/historical_consumption?city=${city}&from=${from}&to=${to}`
+    );
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    chart.data.labels = data.labels;
+    chart.data.datasets[0].data = data.values;
+    chart.data.datasets[0].label = `${city} Consumption (kWh)`;
+    chart.update();
+
+    document.getElementById(
+      "avg-consumption"
+    ).textContent = `${data.avg_consumption.toFixed(2)} kWh`;
+    document.getElementById(
+      "latest-temp"
+    ).textContent = `${data.latest_temp.toFixed(1)} °C`;
+    document.getElementById(
+      "latest-humidity"
+    ).textContent = `${data.latest_humidity.toFixed(1)} %`;
+  });
+
+  document.getElementById("downloadBtn").addEventListener("click", () => {
+    document.getElementById("pdf_city").value =
+      document.getElementById("city").value;
+    document.getElementById("pdf_from").value =
+      document.getElementById("from").value;
+    document.getElementById("pdf_to").value =
+      document.getElementById("to").value;
+  });
+</script>
+{% endblock %}

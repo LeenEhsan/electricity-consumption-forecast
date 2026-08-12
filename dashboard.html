@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin – WattCast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 p-6 font-sans">
+    <h1 class="text-3xl font-bold mb-4">⚙️ Admin Dashboard</h1>
+
+    <div class="grid grid-cols-2 gap-6">
+      <!-- Users Table -->
+      <div class="bg-white p-4 shadow rounded">
+        <h2 class="text-xl font-semibold mb-2">👥 Users</h2>
+        <ul class="divide-y">
+          {% for user in users %}
+          <li class="py-2">
+            <strong>{{ user.username }}</strong><br />
+            {{ user.email }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Reports Table -->
+      <div class="bg-white p-4 shadow rounded overflow-y-scroll max-h-[600px]">
+        <h2 class="text-xl font-semibold mb-2">📂 Reports</h2>
+        <table class="w-full text-sm">
+          <thead>
+            <tr>
+              <th class="text-left">User</th>
+              <th>File</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for report in reports %}
+            <tr class="border-t">
+              <td>{{ report.user.username }}</td>
+              <td>{{ report.filename }}</td>
+              <td>{{ report.file_type }}</td>
+              <td>{{ report.category }}</td>
+              <td>{{ report.timestamp.strftime('%Y-%m-%d') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
